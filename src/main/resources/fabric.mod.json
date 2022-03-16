@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "liarsdice",
+  "version": "${version}",
+  "name": "Liar's Dice",
+  "description": "Liar's dice bro google it",
+  "authors": [
+    "DuncanRuns"
+  ],
+  "contributors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/liarsdice/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "me.duncanruns.liarsdice.LiarsDice"
+    ],
+    "client": [],
+    "server": []
+  },
+  "mixins": [
+    "liarsdice.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.13.3"
+  }
+}
