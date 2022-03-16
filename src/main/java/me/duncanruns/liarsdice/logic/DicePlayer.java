@@ -1,6 +1,5 @@
 package me.duncanruns.liarsdice.logic;
 
-import net.minecraft.network.MessageType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
@@ -80,9 +79,9 @@ public class DicePlayer {
         }
     }
 
-    public void tellActionBar(Text message) {
+    public void tellActionBar(String message, String color, boolean bold) {
         if (isPlayerPresent()) {
-            getEntity().sendChatMessage(message, MessageType.GAME_INFO);
+            minecraftServer.getCommandManager().execute(minecraftServer.getCommandSource(), "tellraw " + playerName + " {\"text\":\"" + message + "\",\"bold\":" + bold + ",\"color\":\"" + color + "\"}");
         }
     }
 

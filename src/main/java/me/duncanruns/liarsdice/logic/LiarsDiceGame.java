@@ -115,21 +115,21 @@ public class LiarsDiceGame {
     private void waitingForCall() {
         for (DicePlayer player : players) {
             if (player.equals(currentPlayer)) {
-                player.tellActionBar(new LiteralText("It is your turn.").formatted(Formatting.GREEN).formatted(Formatting.BOLD));
+                player.tellActionBar("It is your turn.", "green", true);
             } else {
-                player.tellActionBar(new LiteralText("It is not your turn.").formatted(Formatting.GRAY));
+                player.tellActionBar("It is not your turn.", "gray", false);
             }
         }
     }
 
     private void preGameTick() {
-        tellAllPlayers(new LiteralText("Waiting for start... Total Players: " + players.size()), true);
+        tellAllPlayers(new LiteralText("Waiting for start... Total Players: " + players.size()), true, "white", true);
     }
 
-    private void tellAllPlayers(Text message, boolean actionBar) {
+    private void tellAllPlayers(Text message, boolean actionBar, String color, boolean bold) {
         if (actionBar) {
             for (DicePlayer player : players) {
-                player.tellActionBar(message);
+                player.tellActionBar(message.asString(), color, bold);
             }
         } else {
             for (DicePlayer player : players) {
@@ -139,7 +139,7 @@ public class LiarsDiceGame {
     }
 
     private void tellAllPlayers(Text message) {
-        tellAllPlayers(message, false);
+        tellAllPlayers(message, false, "", false);
     }
 
     private void tellAllPlayersCurrentRoll() {
@@ -270,7 +270,7 @@ public class LiarsDiceGame {
             }
             if (players.size() == 1) {
                 DicePlayer winner = players.get(0);
-                winner.tell(new LiteralText("You have won liar's' dice!").formatted(Formatting.GREEN).formatted(Formatting.BOLD));
+                winner.tell(new LiteralText("You have won liar's dice!").formatted(Formatting.GREEN).formatted(Formatting.BOLD));
                 end();
             } else {
                 nextRound();
