@@ -81,7 +81,7 @@ public class DicePlayer {
 
     public void tellActionBar(String message, String color, boolean bold) {
         if (isPlayerPresent()) {
-            minecraftServer.getCommandManager().execute(minecraftServer.getCommandSource(), "title " + playerName + " actionbar {\"text\":\"" + message + "\",\"bold\":" + bold + ",\"color\":\"" + color + "\"}");
+            minecraftServer.getCommandManager().execute(minecraftServer.getCommandSource(), "silenttitle " + playerName + " actionbar {\"text\":\"" + message + "\",\"bold\":" + bold + ",\"color\":\"" + color + "\"}");
         }
     }
 

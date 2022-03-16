@@ -24,5 +24,6 @@ public abstract class CommandManagerMixin {
         LeaveDiceGameCommand.register(dispatcher);
         EndDiceGameCommand.register(dispatcher);
         StartDiceGameCommand.register(dispatcher);
+        SilentTitleCommand.register(dispatcher);
     }
 }
