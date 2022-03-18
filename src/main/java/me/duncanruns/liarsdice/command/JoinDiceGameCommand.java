@@ -14,29 +14,21 @@ public abstract class JoinDiceGameCommand {
     }
 
     private static int execute(ServerCommandSource source) throws CommandSyntaxException {
-        try {
-            String name = source.getPlayer().getGameProfile().getName();
+        if (LiarsDice.hasDiceGame() && !LiarsDice.getLiarsDiceGame().hasEnded()) {
 
-            if (LiarsDice.getLiarsDiceGame() != null) {
-
-                if (LiarsDice.getLiarsDiceGame().getPlayer(source.getPlayer().getGameProfile().getName()) != null) {
-                    source.sendError(new LiteralText("You are already in the game!").formatted(Formatting.RED));
-                    return 0;
-                }
-
-                if (LiarsDice.getLiarsDiceGame().join(source.getPlayer().getGameProfile().getName())) {
-                    source.sendFeedback(new LiteralText("Successfully joined liar's dice."), false);
-                    return 1;
-                }
-                source.sendError(new LiteralText("Could not join game! (In progress or ended)").formatted(Formatting.RED));
+            if (LiarsDice.getLiarsDiceGame().getPlayer(source.getPlayer().getGameProfile().getName()) != null) {
+                source.sendError(new LiteralText("You are already in the game!").formatted(Formatting.RED));
                 return 0;
             }
-            source.sendError(new LiteralText("No liar's dice to join!").formatted(Formatting.RED));
-            return 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            source.sendError(new LiteralText("Error occured.").formatted(Formatting.RED));
+
+            if (LiarsDice.getLiarsDiceGame().join(source.getPlayer().getGameProfile().getName())) {
+                source.sendFeedback(new LiteralText("Successfully joined liar's dice."), false);
+                return 1;
+            }
+            source.sendError(new LiteralText("Could not join game! (In progress or ended)").formatted(Formatting.RED));
             return 0;
         }
+        source.sendError(new LiteralText("No liar's dice to join!").formatted(Formatting.RED));
+        return 0;
     }
 }

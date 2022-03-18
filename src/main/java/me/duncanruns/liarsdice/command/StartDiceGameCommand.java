@@ -16,7 +16,7 @@ public abstract class StartDiceGameCommand {
     }
 
     private static int execute(ServerCommandSource source) throws CommandSyntaxException {
-        if (LiarsDice.hasDiceGame()) {
+        if (LiarsDice.hasDiceGame() && !LiarsDice.getLiarsDiceGame().hasEnded()) {
             LiarsDiceGame game = LiarsDice.getLiarsDiceGame();
             if (game.startGame()) {
                 if (!game.hasPlayer(source.getPlayer().getGameProfile().getName()))

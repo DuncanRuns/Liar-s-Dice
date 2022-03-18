@@ -11,7 +11,7 @@ public class LiarsDice implements ModInitializer {
     public static final String MOD_ID = "liarsdice";
     public static final String MOD_NAME = "Liar's Dice";
     public static Logger LOGGER = LogManager.getLogger();
-    private static volatile LiarsDiceGame liarsDiceGame = null;
+    private static volatile LiarsDiceGame liarsDiceGame;
 
     public static boolean hasDiceGame() {
         return getLiarsDiceGame() != null;
@@ -22,8 +22,8 @@ public class LiarsDice implements ModInitializer {
     }
 
     public static void setLiarsDiceGame(LiarsDiceGame liarsDiceGame) {
-        if (LiarsDice.liarsDiceGame != null) {
-            LiarsDice.liarsDiceGame.end();
+        if (getLiarsDiceGame() != null && !getLiarsDiceGame().hasEnded()) {
+            getLiarsDiceGame().end();
         }
         LiarsDice.liarsDiceGame = liarsDiceGame;
     }
@@ -35,6 +35,7 @@ public class LiarsDice implements ModInitializer {
     @Override
     public void onInitialize() {
         log(Level.INFO, "Initializing");
+        liarsDiceGame = null;
     }
 
 }

@@ -25,6 +25,8 @@ public class LiarsDiceGame {
     private Call lastCall;
     private List<DicePlayer> players;
     private DicePlayer currentPlayer;
+    private Animation animation;
+
     /*
     STAGES:
     0 - Not Started
@@ -32,18 +34,17 @@ public class LiarsDiceGame {
     2 - Playing animation
     3 - Ended
      */
-
-
     public LiarsDiceGame(int startingDice, MinecraftServer minecraftServer, BlockPos tablePos, boolean wildOnes) {
         this.startingDice = startingDice;
         this.minecraftServer = minecraftServer;
         this.stage = 0;
         this.tablePos = tablePos;
-        relatedEntities = new ArrayList<>();
-        players = new ArrayList<>();
-        currentPlayer = null;
-        round = 0;
+        this.relatedEntities = new ArrayList<>();
+        this.players = new ArrayList<>();
+        this.currentPlayer = null;
+        this.round = 0;
         this.wildOnes = wildOnes;
+        this.animation = null;
     }
 
     private void clearAllEntities() {
@@ -56,9 +57,7 @@ public class LiarsDiceGame {
     public void end() {
         clearAllEntities();
         stage = 3;
-        for (DicePlayer player : players) {
-            player.tell(new LiteralText("Liar's dice game has ended."));
-        }
+        tellEveryone(new LiteralText("Liar's dice game has ended."));
     }
 
     public boolean isJoinable() {
@@ -108,6 +107,9 @@ public class LiarsDiceGame {
                 waitingForCall();
                 break;
             case 2:
+                animation.tick();
+                if (animation.isDone())
+                    stage = animation.getNextStage();
                 break;
         }
     }
@@ -126,7 +128,7 @@ public class LiarsDiceGame {
         tellAllPlayers(new LiteralText("Waiting for start... Total Players: " + players.size()), true, "white", true);
     }
 
-    private void tellAllPlayers(Text message, boolean actionBar, String color, boolean bold) {
+    public void tellAllPlayers(Text message, boolean actionBar, String color, boolean bold) {
         if (actionBar) {
             for (DicePlayer player : players) {
                 player.tellActionBar(message.asString(), color, bold);
@@ -138,11 +140,15 @@ public class LiarsDiceGame {
         }
     }
 
-    private void tellAllPlayers(Text message) {
+    public void tellAllPlayers(Text message) {
         tellAllPlayers(message, false, "", false);
     }
 
-    private void tellAllPlayersCurrentRoll() {
+    public void tellEveryone(Text message) {
+        minecraftServer.getPlayerManager().broadcastChatMessage(message, false);
+    }
+
+    public void tellAllPlayersCurrentRoll() {
         for (DicePlayer player : players) {
             player.tellCurrentRoll();
         }
@@ -176,7 +182,7 @@ public class LiarsDiceGame {
         return total;
     }
 
-    private void nextRound() {
+    public void nextRound() {
         round++;
         rollAllDice();
         lastCall = Call.STARTER;
@@ -197,11 +203,11 @@ public class LiarsDiceGame {
         }
         tellAllPlayersCurrentRoll();
         stage = 1;
+        // Cup shake animation instead of stage = 1.
     }
 
     public boolean startGame() {
-        if (players.size() < 2)
-            return false;
+        if (players.size() < 2) return false;
         if (stage == 0) {
             shufflePlayers();
             nextRound();
@@ -221,40 +227,52 @@ public class LiarsDiceGame {
         return countResults;
     }
 
+    public void checkNextRound() {
+        if (players.size() == 1) {
+            DicePlayer winner = players.get(0);
+            winner.tell(new LiteralText("You have won liar's dice!").formatted(Formatting.GREEN).formatted(Formatting.BOLD));
+            end();
+        } else {
+            nextRound();
+        }
+    }
+
     public void makeCall(Call call) {
         if (call.liar) {
+            Text summaryText, liarText, lostDiceText;
+            Text removedFromGameText = null;
+            DicePlayer completeLoser = null;
+
             DicePlayer loser;
             CountResults countResults = countDice(lastCall.dice);
             int actualAmount = countResults.getTotal();
-            tellAllPlayers(new LiteralText(""));
-
-            String summary = "";
+            tellEveryone(new LiteralText(""));
+            StringBuilder summary = new StringBuilder();
             if (countResults.getPlayerList().size() == 0) {
-                summary = "Nobody had any " + lastCall.dice + "'s.";
+                summary = new StringBuilder("Nobody had any " + lastCall.dice + "'s.");
             } else {
                 for (Pair<DicePlayer, Integer> pair : countResults.getPlayerList()) {
-                    if (!summary.equals("")) {
-                        summary += ", ";
+                    if (!summary.toString().equals("")) {
+                        summary.append(", ");
                     }
                     int count = pair.getRight();
-                    summary += pair.getLeft().getPlayerName() + " had " + (count == 1 ? "a " : pair.getRight() + " ") + lastCall.dice + (count == 1 ? "" : "'s");
+                    summary.append(pair.getLeft().getPlayerName()).append(" had ").append(count == 1 ? "a " : pair.getRight() + " ").append(lastCall.dice).append(count == 1 ? "" : "'s");
                 }
-                summary += ", totalling " + actualAmount + " " + lastCall.dice + (actualAmount == 1 ? "" : "'s") + ".";
+                summary.append(", totalling ").append(actualAmount).append(" ").append(lastCall.dice).append(actualAmount == 1 ? "" : "'s").append(".");
             }
-            tellAllPlayers(new LiteralText(summary));
-
+            summaryText = new LiteralText(summary.toString());
             if (lastCall.amount > actualAmount) {
                 loser = lastCall.dicePlayer;
                 assert loser != null;
-                tellAllPlayers(new LiteralText(lastCall.dicePlayer.getPlayerName() + " was a liar!"));
+                liarText = new LiteralText(lastCall.dicePlayer.getPlayerName() + " was a liar!");
             } else {
                 loser = call.dicePlayer;
                 assert loser != null;
                 assert lastCall.dicePlayer != null;
-                tellAllPlayers(new LiteralText(lastCall.dicePlayer.getPlayerName() + " was not a liar!"));
+                liarText = new LiteralText(lastCall.dicePlayer.getPlayerName() + " was not a liar!");
             }
             loser.loseDice();
-            tellAllPlayers(new LiteralText(loser.getPlayerName() + " has lost a dice!"));
+            lostDiceText = new LiteralText(loser.getPlayerName() + " has lost a dice and now has " + loser.getTotalDice() + "!");
             if (loser.getTotalDice() == 0) {
                 int index = players.indexOf(loser);
                 index++;
@@ -263,18 +281,13 @@ public class LiarsDiceGame {
                 }
                 currentPlayer = players.get(index);
                 players.remove(loser);
-                tellAllPlayers(new LiteralText(loser.getPlayerName() + " has been removed from the game."));
-                loser.tell(new LiteralText("You have lost liar's dice and have been removed from the game.").formatted(Formatting.RED).formatted(Formatting.BOLD));
+                removedFromGameText = new LiteralText(loser.getPlayerName() + " has been removed from the game.");
+                completeLoser = loser;
             } else {
                 currentPlayer = loser;
             }
-            if (players.size() == 1) {
-                DicePlayer winner = players.get(0);
-                winner.tell(new LiteralText("You have won liar's dice!").formatted(Formatting.GREEN).formatted(Formatting.BOLD));
-                end();
-            } else {
-                nextRound();
-            }
+            animation = new NextRoundAnimation(this, summaryText, liarText, lostDiceText, removedFromGameText, completeLoser);
+            stage = 2;
         } else {
             lastCall = call;
             int index = players.indexOf(call.dicePlayer);
@@ -291,22 +304,6 @@ public class LiarsDiceGame {
     }
 
     public void givePlayerInfo(DicePlayer joinedPlayer) {
-/*
-
-        tellAllPlayers(new LiteralText("--------------------"));
-        tellAllPlayers(new LiteralText("Round " + round).formatted(Formatting.BOLD).formatted(Formatting.AQUA));
-        for (DicePlayer player : players) {
-            Text playerText = new LiteralText(player.getPlayerName() + " - ");
-            for (int i = 0; i < player.getTotalDice(); i++) {
-                playerText.append(new LiteralText("■"));
-            }
-            if (player.equals(currentPlayer)) {
-                playerText.append(new LiteralText(" <---").formatted(Formatting.GREEN));
-            }
-            tellAllPlayers(playerText);
-        }
-        tellAllPlayersCurrentRoll();
- */
         joinedPlayer.tell(new LiteralText("--------------------"));
         joinedPlayer.tell(new LiteralText("Round " + round).formatted(Formatting.BOLD).formatted(Formatting.AQUA));
         for (DicePlayer player : players) {

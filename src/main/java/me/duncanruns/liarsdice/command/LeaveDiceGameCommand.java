@@ -15,7 +15,7 @@ public abstract class LeaveDiceGameCommand {
     }
 
     private static int execute(ServerCommandSource source) throws CommandSyntaxException {
-        if (LiarsDice.hasDiceGame()) {
+        if (LiarsDice.hasDiceGame() && !LiarsDice.getLiarsDiceGame().hasEnded()) {
             if(LiarsDice.getLiarsDiceGame().leave(source.getPlayer().getGameProfile().getName())){
                 source.sendFeedback(new LiteralText("You left liar's dice."),false);
                 return 1;

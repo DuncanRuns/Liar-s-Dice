@@ -13,10 +13,13 @@ public abstract class EndDiceGameCommand {
     }
 
     private static int execute(ServerCommandSource source) {
-        if (LiarsDice.getLiarsDiceGame() != null) {
+        if (LiarsDice.hasDiceGame()) {
+            boolean hasEnded = LiarsDice.getLiarsDiceGame().hasEnded();
             LiarsDice.setLiarsDiceGame(null);
-            source.sendFeedback(new LiteralText("Ended liar's dice."), true);
-            return 1;
+            if (!hasEnded) {
+                source.sendFeedback(new LiteralText("Ended liar's dice."), true);
+                return 1;
+            }
         }
         source.sendError(new LiteralText("No liar's dice game to end!").formatted(Formatting.RED));
         return 0;
