@@ -1,13 +1,13 @@
 package me.duncanruns.liarsdice.logic;
 
-public class Call {
-    public static final Call STARTER = new Call();
+public class DiceCall {
+    public static final DiceCall STARTER = new DiceCall();
 
     public final int amount, dice;
     public final boolean liar, valid, outOfRange;
     public final DicePlayer dicePlayer;
 
-    public Call(String input, int maxDice, Call lastCall, DicePlayer dicePlayer) {
+    public DiceCall(String input, int maxDice, DiceCall lastCall, DicePlayer dicePlayer) {
         this.dicePlayer = dicePlayer;
         if (input.toLowerCase().startsWith("liar")) {
             if (lastCall.equals(STARTER)) {
@@ -61,7 +61,7 @@ public class Call {
         outOfRange = false;
     }
 
-    private Call() {
+    private DiceCall() {
         amount = dice = 0;
         valid = true;
         liar = outOfRange = false;

@@ -22,7 +22,7 @@ public class LiarsDiceGame {
     private final boolean wildOnes;
     private int stage;
     private int round;
-    private Call lastCall;
+    private DiceCall lastCall;
     private List<DicePlayer> players;
     private DicePlayer currentPlayer;
     private Animation animation;
@@ -185,7 +185,7 @@ public class LiarsDiceGame {
     public void nextRound() {
         round++;
         rollAllDice();
-        lastCall = Call.STARTER;
+        lastCall = DiceCall.STARTER;
         if (currentPlayer == null) {
             currentPlayer = players.get(0);
         }
@@ -237,7 +237,7 @@ public class LiarsDiceGame {
         }
     }
 
-    public void makeCall(Call call) {
+    public void makeCall(DiceCall call) {
         if (call.liar) {
             Text summaryText, liarText, lostDiceText;
             Text removedFromGameText = null;
@@ -286,7 +286,7 @@ public class LiarsDiceGame {
             } else {
                 currentPlayer = loser;
             }
-            animation = new NextRoundAnimation(this, summaryText, liarText, lostDiceText, removedFromGameText, completeLoser);
+            animation = new LiarCallAnimation(this, summaryText, liarText, lostDiceText, removedFromGameText, completeLoser);
             stage = 2;
         } else {
             lastCall = call;
@@ -299,7 +299,7 @@ public class LiarsDiceGame {
         }
     }
 
-    public Call getLastCall() {
+    public DiceCall getLastCall() {
         return lastCall;
     }
 
@@ -317,7 +317,7 @@ public class LiarsDiceGame {
             joinedPlayer.tell(playerText);
         }
         joinedPlayer.tellCurrentRoll();
-        if (!lastCall.equals(Call.STARTER)) {
+        if (!lastCall.equals(DiceCall.STARTER)) {
             assert lastCall.dicePlayer != null;
             if (lastCall.liar) {
                 joinedPlayer.tell(new LiteralText("<" + lastCall.dicePlayer.getPlayerName() + "> Liar!"));

@@ -1,7 +1,7 @@
 package me.duncanruns.liarsdice.mixin;
 
 import me.duncanruns.liarsdice.LiarsDice;
-import me.duncanruns.liarsdice.logic.Call;
+import me.duncanruns.liarsdice.logic.DiceCall;
 import me.duncanruns.liarsdice.logic.LiarsDiceGame;
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import net.minecraft.server.MinecraftServer;
@@ -21,10 +21,6 @@ public abstract class ServerPlayNetworkHandlerMixin {
     @Shadow
     public ServerPlayerEntity player;
 
-    @Shadow
-    @Final
-    private MinecraftServer server;
-
     @Inject(method = "onChatMessage", at = @At(value = "INVOKE", shift = At.Shift.BEFORE, target = "Lnet/minecraft/server/PlayerManager;broadcastChatMessage(Lnet/minecraft/text/Text;Z)V"), cancellable = true)
     private void onChatMixin(ChatMessageC2SPacket packet, CallbackInfo info) {
         if (LiarsDice.hasDiceGame()) {
@@ -33,22 +29,21 @@ public abstract class ServerPlayNetworkHandlerMixin {
                 String playerName = player.getGameProfile().getName();
                 if (game.hasPlayer(playerName)) {
                     if (game.isPlayersTurn(playerName)) {
-                        Call call = new Call(packet.getChatMessage(), game.getTotalDice(), game.getLastCall(), game.getPlayer(playerName));
+                        DiceCall call = new DiceCall(packet.getChatMessage(), game.getTotalDice(), game.getLastCall(), game.getPlayer(playerName));
                         if (call.valid) {
                             if (call.liar) {
-                                server.getPlayerManager().broadcastChatMessage(new LiteralText("<" + playerName + "> Liar!"), false);
+                                game.tellEveryone(new LiteralText("<").append(player.getDisplayName()).append("> Liar!"));
                             } else {
-                                server.getPlayerManager().broadcastChatMessage(new LiteralText("<" + playerName + "> " + call.amount + " " + call.dice + (call.amount == 1 ? "" : "'s")), false);
+                                game.tellEveryone(new LiteralText("<").append(player.getDisplayName()).append("> " + call.amount + " " + call.dice + (call.amount == 1 ? "" : "'s")));
                             }
                             game.makeCall(call);
                         } else {
                             player.sendMessage(new LiteralText("Invalid call!").formatted(Formatting.RED));
                             if (call.outOfRange) {
-                                Call lastCall = game.getLastCall();
-                                player.sendMessage(new LiteralText("You must guess an amount between 1 and " + game.getTotalDice() + ".").formatted(Formatting.RED));
-                                player.sendMessage(new LiteralText("You must guess a dice between " + lastCall.dice + " and 6.").formatted(Formatting.RED));
-                                player.sendMessage(new LiteralText("If you are guessing dice " + lastCall.dice + ", you must guess at least an amount of " + (lastCall.amount + 1) + ".").formatted(Formatting.RED));
-                                player.sendMessage(new LiteralText("If it is impossible to meet all the requirements above, you must call liar. You can also call liar at any point except the start of a round.").formatted(Formatting.RED));
+                                player.sendMessage(new LiteralText("You must call a higher quantity of the same face (3 4's -> 4 4's),").formatted(Formatting.RED));
+                                player.sendMessage(new LiteralText("or you must call any quantity of a higher face (5 4's -> 2 5's).").formatted(Formatting.RED));
+                                player.sendMessage(new LiteralText("You cannot call a quantity of more than the dice on the table (currently at " + game.getTotalDice() + ").").formatted(Formatting.RED));
+                                player.sendMessage(new LiteralText("If it is impossible to meet the requirements above, you must call liar. You can also call liar at any point except the start of a round.").formatted(Formatting.RED));
                             } else {
                                 player.sendMessage(new LiteralText("Examples:").formatted(Formatting.RED));
                                 player.sendMessage(new LiteralText("- \"liar\"").formatted(Formatting.RED));

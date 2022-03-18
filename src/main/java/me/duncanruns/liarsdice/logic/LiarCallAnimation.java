@@ -5,14 +5,14 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.Nullable;
 
-public class NextRoundAnimation extends Animation {
+public class LiarCallAnimation extends Animation {
 
     private final LiarsDiceGame game;
     private final Text summaryText, liarText, lostDiceText, removedFromGameText;
     private final DicePlayer completeLoser;
     private final boolean someoneGetsRemoved;
 
-    public NextRoundAnimation(LiarsDiceGame game, Text summaryText, Text liarText, Text lostDiceText, @Nullable Text removedFromGameText, @Nullable DicePlayer completeLoser) {
+    public LiarCallAnimation(LiarsDiceGame game, Text summaryText, Text liarText, Text lostDiceText, @Nullable Text removedFromGameText, @Nullable DicePlayer completeLoser) {
         super();
         this.game = game;
         this.summaryText = summaryText;
